@@ -1,0 +1,32 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      PORT: "3000"
+      GOOGLE_SAFE_BROWSING_API_KEY: ${GOOGLE_SAFE_BROWSING_API_KEY:-}
+      VIRUSTOTAL_API_KEY: ${VIRUSTOTAL_API_KEY:-}
+      URLHAUS_AUTH_KEY: ${URLHAUS_AUTH_KEY:-}
+      ABUSEIPDB_API_KEY: ${ABUSEIPDB_API_KEY:-}
+      OTX_API_KEY: ${OTX_API_KEY:-}
+      IPINFO_TOKEN: ${IPINFO_TOKEN:-}
+      IP_API_ALLOW_HTTP: ${IP_API_ALLOW_HTTP:-false}
+      MONGODB_URI: mongodb://mongo:27017/shadowping
+      MONGODB_DATABASE: shadowping
+    depends_on:
+      mongo:
+        condition: service_healthy
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - shadowping-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+volumes:
+  shadowping-data:
